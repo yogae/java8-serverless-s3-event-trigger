@@ -17,6 +17,10 @@ import com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRe
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 public class Handler implements RequestHandler<S3Event, String> {
 	Regions clientRegion = Regions.US_EAST_1;
@@ -33,7 +37,11 @@ public class Handler implements RequestHandler<S3Event, String> {
 		GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
 		try {
 			s3Object = s3Client.getObject(getObjectRequest);
-			displayTextInputStream(s3Object.getObjectContent());
+			String str = displayTextInputStream(s3Object.getObjectContent());
+			AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
+			SendMessageRequest sendMsg = new SendMessageRequest().withQueueUrl(System.getenv("QUEUE_URL"))
+					.withMessageBody(str);
+			sqs.sendMessage(sendMsg);
 		} catch (IOException e) {
 			LOG.error(e);
 		} catch (AmazonS3Exception e) {
@@ -50,12 +58,16 @@ public class Handler implements RequestHandler<S3Event, String> {
 		return "OK";
 	}
 
-	private static void displayTextInputStream(InputStream input) throws IOException {
+	private static String displayTextInputStream(InputStream input) throws IOException {
 		// Read the text input stream one line at a time and display each line.
 		BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 		String line = null;
+		StringBuffer response = new StringBuffer();
 		while ((line = reader.readLine()) != null) {
 			LOG.info(line);
+			response.append(line);
+			response.append('\r');
 		}
+		return response.toString();
 	}
 }

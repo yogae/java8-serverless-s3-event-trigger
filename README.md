@@ -27,5 +27,5 @@ sls deploy
 ```bash
 aws s3 cp <file path> s3://<bucket name>/<file path>
 
-# aws s3 cp test.txt s3://jihyun-upload-trigger-bucket/uploads/test.txt
+# aws s3 cp test.txt s3://<bucket name>/uploads/test.txt
 ```

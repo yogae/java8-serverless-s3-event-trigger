@@ -11,6 +11,20 @@ provider:
         - "s3:*"
       Resource:
         - "*"
+    - Effect: "Allow"
+      Action:
+        - "sqs:*"
+      Resource:
+        - "*"
+    - Effect: "Allow"
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+      Resource:
+        - "*"
+  environment:
+    QUEUE_URL: ${file(env.json):QUEUE_URL}
 custom:
   bucketName: ${file(env.json):BUCKET_NAME}
   uploadPrefix: ${file(env.json):UPLOAD_PREFIX}
